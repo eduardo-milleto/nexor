@@ -89,10 +89,11 @@ jobs:
           vercel-args: '--prod'  # --prod flag = production deployment!
           working-directory: ./frontend
 
-      - name: Trigger Railway Production Deploy
+      # Railway auto-deploys from GitHub - no webhook needed!
+      - name: Backend Deploy Status
         run: |
-          curl -X POST "${{ secrets.RAILWAY_WEBHOOK }}" \
-            -H "Content-Type: application/json"
+          echo "✅ Railway will auto-deploy the backend from this push"
+          echo "📍 Production URL: https://nexor-production.up.railway.app"
 
       - name: Create GitHub Release
         if: github.event_name == 'workflow_dispatch'

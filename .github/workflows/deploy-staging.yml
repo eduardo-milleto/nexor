@@ -69,10 +69,11 @@ jobs:
           # Notice: NO --prod flag = preview/staging deployment
           working-directory: ./frontend
 
-      - name: Trigger Railway Staging Deploy
+      # Railway auto-deploys from GitHub - no webhook needed!
+      - name: Backend Deploy Status
         run: |
-          curl -X POST "${{ secrets.RAILWAY_WEBHOOK }}" \
-            -H "Content-Type: application/json"
+          echo "✅ Railway will auto-deploy the backend from this push"
+          echo "📍 Staging URL: https://nexor-staging.up.railway.app"
 
       - name: Comment on PR with staging URL
         if: github.event_name == 'pull_request'
