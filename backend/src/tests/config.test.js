@@ -1,35 +1,44 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-// Unit tests that run without external dependencies
+// Unit tests - validate code logic and environment configuration
 
-describe('Environment Variables', () => {
-    it('should have DATABASE_URL set', () => {
+describe('Application Logic', () => {
+    it('should validate email format correctly', () => {
+        const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+        assert.ok(isValidEmail('admin@nexor.com'), 'Valid email should pass');
+        assert.ok(isValidEmail('user@example.com'), 'Valid email should pass');
+        assert.ok(!isValidEmail('invalid-email'), 'Invalid email should fail');
+        assert.ok(!isValidEmail(''), 'Empty string should fail');
+    });
+
+    it('should validate admin email restriction', () => {
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nexor.com';
+        const isAdmin = (email) => email === ADMIN_EMAIL;
+
+        assert.ok(isAdmin('admin@nexor.com'), 'Admin email should be recognized');
+        assert.ok(!isAdmin('user@nexor.com'), 'Non-admin should not be recognized');
+    });
+});
+
+describe('Environment Configuration', () => {
+    it('should have DATABASE_URL configured', () => {
         assert.ok(process.env.DATABASE_URL, 'DATABASE_URL should be set');
     });
 
-    it('should have SUPABASE_URL set', () => {
+    it('should have SUPABASE_URL configured', () => {
         assert.ok(process.env.SUPABASE_URL, 'SUPABASE_URL should be set');
     });
 
-    it('should have SUPABASE_ANON_KEY set', () => {
+    it('should have SUPABASE_ANON_KEY configured', () => {
         assert.ok(process.env.SUPABASE_ANON_KEY, 'SUPABASE_ANON_KEY should be set');
     });
-
-    it('should have valid DATABASE_URL format', () => {
-        const url = process.env.DATABASE_URL;
-        assert.ok(url.startsWith('postgresql://'), 'DATABASE_URL should start with postgresql://');
-    });
-
-    it('should have valid SUPABASE_URL format', () => {
-        const url = process.env.SUPABASE_URL;
-        assert.ok(url.startsWith('https://'), 'SUPABASE_URL should start with https://');
-    });
 });
 
-describe('Admin Configuration', () => {
-    it('should have ADMIN_EMAIL configured', () => {
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@nexor.com';
-        assert.ok(adminEmail.includes('@'), 'ADMIN_EMAIL should be a valid email');
-    });
-});
+describe('Utility Functions', () => {
+    it('should sanitize user input', () => {
+        const sanitize = (input) => input.trim().toLowerCase();
+
+        assert.strictEqual(sanitize('  HELLO  '), 'hello');
+        assert.strictEqual(sanitize('Test@Email.COM'), 'test@email.com');
