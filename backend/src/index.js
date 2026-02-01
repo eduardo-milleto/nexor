@@ -13,8 +13,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors({
     origin: [
-        'http://localhost', 
-        'http://localhost:80', 
+        'http://localhost',
+        'http://localhost:80',
         'http://localhost:5173',
         'https://nexorcorp.app',
         'https://staging.nexorcorp.app',
