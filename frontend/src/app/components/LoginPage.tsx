@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import nexorLogo from '@/assets/e8761369f8a34f22127c9d370ecc809e022cf919.png';
+import { authService } from '@/services/auth.service';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -13,13 +14,28 @@ export function LoginPage({ onLogin, onAdminLogin }: LoginPageProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isAdminMode && onAdminLogin) {
-      onAdminLogin();
-    } else {
-      onLogin();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      if (isAdminMode) {
+        await authService.adminLogin(email, password);
+        if (onAdminLogin) {
+          onAdminLogin();
+        }
+      } else {
+        await authService.login(email, password);
+        onLogin();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,6 +80,13 @@ export function LoginPage({ onLogin, onAdminLogin }: LoginPageProps) {
               {isAdminMode ? 'Acesso exclusivo para administradores' : 'Entre com sua conta para continuar'}
             </p>
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -115,9 +138,10 @@ export function LoginPage({ onLogin, onAdminLogin }: LoginPageProps) {
               type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 bg-gradient-to-r from-[#1fff94] to-[#0dcc6f] text-black font-semibold rounded-2xl shadow-lg shadow-[#1fff94]/30 hover:shadow-[#1fff94]/50 transition-all duration-300"
+              disabled={isLoading}
+              className="w-full py-4 bg-gradient-to-r from-[#1fff94] to-[#0dcc6f] text-black font-semibold rounded-2xl shadow-lg shadow-[#1fff94]/30 hover:shadow-[#1fff94]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar
+              {isLoading ? 'Entrando...' : 'Entrar'}
             </motion.button>
 
             {/* Admin/User Toggle */}

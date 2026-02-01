@@ -2,14 +2,19 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool, testConnection } from './config/database.js';
+import authRoutes from './routes/auth.routes.js';
 
+// Load environment variables
 dotenv.config({ path: '../.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost', 'http://localhost:80', 'http://localhost:5173'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Health check
@@ -30,16 +35,35 @@ app.get('/health', async (req, res) => {
     }
 });
 
-// API routes
+// API info
 app.get('/api', (req, res) => {
     res.json({
         message: 'Nexor API',
-        version: '1.0.0'
+        version: '1.0.0',
+        endpoints: {
+            health: '/health',
+            auth: '/api/auth/*'
+        }
     });
+});
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Not found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
 app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Admin email: ${process.env.ADMIN_EMAIL || 'admin@nexor.com'}`);
     await testConnection();
 });
