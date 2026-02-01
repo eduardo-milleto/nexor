@@ -58,7 +58,7 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: test  # Only runs if tests pass!
-    environment: staging  # Uses staging environment secrets
+    # Uses repository secrets (not environment-specific)
     
     steps:
       - name: Checkout code
