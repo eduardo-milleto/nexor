@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
+import {
   ArrowLeft,
   ShoppingCart,
   DollarSign,
@@ -11,7 +11,7 @@ import {
   Settings,
   User
 } from 'lucide-react';
-import nexorLogo from 'figma:asset/e8761369f8a34f22127c9d370ecc809e022cf919.png';
+import nexorLogo from '@/assets/e8761369f8a34f22127c9d370ecc809e022cf919.png';
 import { CRMApp } from '@/app/components/CRMApp';
 import { EmailApp } from '@/app/components/EmailApp';
 import { UsersApp } from '@/app/components/UsersApp';
@@ -80,19 +80,19 @@ export function ERPDashboard({ onBack }: ERPDashboardProps) {
   if (activeModule === 'crm') {
     return <CRMApp onBack={() => setActiveModule(null)} />;
   }
-  
+
   if (activeModule === 'financeiro') {
     return <FinanceApp onBack={() => setActiveModule(null)} />;
   }
-  
+
   if (activeModule === 'email') {
     return <EmailApp onBack={() => setActiveModule(null)} />;
   }
-  
+
   if (activeModule === 'usuarios') {
     return <UsersApp onBack={() => setActiveModule(null)} />;
   }
-  
+
   if (activeModule === 'estoque') {
     return <InventoryApp onBack={() => setActiveModule(null)} language="pt" />;
   }
@@ -222,7 +222,7 @@ export function ERPDashboard({ onBack }: ERPDashboardProps) {
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500">
                   <svg width="100%" height="100%">
                     <pattern id={`grid-${module.id}`} width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1fff94" strokeWidth="0.5"/>
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1fff94" strokeWidth="0.5" />
                     </pattern>
                     <rect width="100%" height="100%" fill={`url(#grid-${module.id})`} />
                   </svg>
@@ -235,8 +235,8 @@ export function ERPDashboard({ onBack }: ERPDashboardProps) {
                     transition={{ duration: 0.5 }}
                     className="flex-shrink-0"
                   >
-                    <IconComponent 
-                      size={48} 
+                    <IconComponent
+                      size={48}
                       className="text-gray-300 group-hover:text-[#1fff94] transition-colors duration-300"
                       strokeWidth={1.5}
                       style={{

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Language, 
+import {
+  Language,
   Logout
 } from '@mui/icons-material';
-import { 
+import {
   Database,
   Bot,
   Sparkles
 } from 'lucide-react';
-import nexorLogo from 'figma:asset/e8761369f8a34f22127c9d370ecc809e022cf919.png';
+import nexorLogo from '@/assets/e8761369f8a34f22127c9d370ecc809e022cf919.png';
 
 interface HomePageProps {
   onLogout: () => void;
@@ -173,9 +173,8 @@ export function HomePage({ onLogout, onNavigate }: HomePageProps) {
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code as LanguageCode)}
-                      className={`w-full px-5 py-3 flex items-center justify-between hover:bg-[#1fff94]/10 transition-colors ${
-                        currentLanguage === lang.code ? 'bg-[#1fff94]/20 text-[#1fff94]' : 'text-gray-300'
-                      }`}
+                      className={`w-full px-5 py-3 flex items-center justify-between hover:bg-[#1fff94]/10 transition-colors ${currentLanguage === lang.code ? 'bg-[#1fff94]/20 text-[#1fff94]' : 'text-gray-300'
+                        }`}
                     >
                       <span className="text-sm">{lang.fullName}</span>
                       <span className="text-xs font-mono">{lang.name}</span>
@@ -209,10 +208,10 @@ export function HomePage({ onLogout, onNavigate }: HomePageProps) {
         >
           {/* Logo Central */}
           <div className="flex justify-center mb-6">
-            <img 
-              src={nexorLogo} 
-              alt="Nexor Logo" 
-              className="w-24 h-24 object-contain" 
+            <img
+              src={nexorLogo}
+              alt="Nexor Logo"
+              className="w-24 h-24 object-contain"
               style={{
                 filter: 'drop-shadow(0 0 20px rgba(31, 255, 148, 0.3))'
               }}
@@ -251,7 +250,7 @@ export function HomePage({ onLogout, onNavigate }: HomePageProps) {
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300">
                   <svg width="100%" height="100%">
                     <pattern id={`grid-${option.id}`} width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1fff94" strokeWidth="0.5"/>
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1fff94" strokeWidth="0.5" />
                     </pattern>
                     <rect width="100%" height="100%" fill={`url(#grid-${option.id})`} />
                   </svg>
@@ -260,8 +259,8 @@ export function HomePage({ onLogout, onNavigate }: HomePageProps) {
                 <div className="relative z-10">
                   {/* Icon */}
                   <div className="mb-6">
-                    <IconComponent 
-                      className="text-[#1fff94] group-hover:text-white transition-colors duration-300" 
+                    <IconComponent
+                      className="text-[#1fff94] group-hover:text-white transition-colors duration-300"
                       size={64}
                       strokeWidth={1.5}
                       style={{

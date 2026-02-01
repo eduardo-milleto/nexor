@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import nexorLogo from 'figma:asset/e8761369f8a34f22127c9d370ecc809e022cf919.png';
+import nexorLogo from '@/assets/e8761369f8a34f22127c9d370ecc809e022cf919.png';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -48,9 +48,9 @@ export function LoginPage({ onLogin, onAdminLogin }: LoginPageProps) {
         <div className="backdrop-blur-xl bg-white/5 rounded-3xl shadow-2xl border border-white/10 p-8 md:p-10">
           {/* Logo space */}
           <div className="flex justify-center mb-8">
-            <img 
-              src={nexorLogo} 
-              alt="Nexor Logo" 
+            <img
+              src={nexorLogo}
+              alt="Nexor Logo"
               className="w-32 h-32 object-contain"
             />
           </div>
