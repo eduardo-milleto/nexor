@@ -42,3 +42,5 @@ describe('Utility Functions', () => {
 
         assert.strictEqual(sanitize('  HELLO  '), 'hello');
         assert.strictEqual(sanitize('Test@Email.COM'), 'test@email.com');
+    });
+});
