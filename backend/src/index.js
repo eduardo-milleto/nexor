@@ -12,7 +12,15 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost', 'http://localhost:80', 'http://localhost:5173'],
+    origin: [
+        'http://localhost', 
+        'http://localhost:80', 
+        'http://localhost:5173',
+        'https://nexorcorp.app',
+        'https://staging.nexorcorp.app',
+        'https://nexor-eta.vercel.app',
+        /\.vercel\.app$/  // Allow all Vercel preview URLs
+    ],
     credentials: true
 }));
 app.use(express.json());
