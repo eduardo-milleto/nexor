@@ -1,52 +1,116 @@
+# =============================================================================
+# Deploy to Production - MANUAL TRIGGER with approval required
+# =============================================================================
 name: Deploy Production
 
 on:
+  # Option 1: Manual trigger (recommended)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 1.2.3)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+        type: string
+
+  # Option 2: Tag-based (v1.0.0, v1.1.0, etc.)
   push:
     tags:
       - 'v*'
 
 jobs:
+  # ============================================
+  # Step 1: Verify staging tests passed
+  # ============================================
+  verify:
+    name: Verify Staging Status
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check manual confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "❌ You must type 'DEPLOY' to confirm production deployment"
+            exit 1
+          fi
+          echo "✅ Deployment confirmed"
+
+      - name: Verify staging workflow passed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the latest staging workflow run
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy-staging.yml',
+              branch: 'main',
+              status: 'success',
+              per_page: 1
+            });
+            
+            if (runs.data.total_count === 0) {
+              core.setFailed('❌ No successful staging deployment found. Deploy to staging first!');
+            }
+            
+            console.log('✅ Staging deployment verified');
+
+  # ============================================
+  # Step 2: Deploy to Production (requires approval)
+  # ============================================
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    environment: production
+    needs: verify
+    environment: 
+      name: production
+      # This enables manual approval in GitHub!
+      # Configure in: Settings → Environments → production → Required reviewers
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          node-version: '20'
 
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Build and Push Backend
-        uses: docker/build-push-action@v5
+      - name: Deploy Frontend to Vercel (Production)
+        uses: amondnet/vercel-action@v25
         with:
-          context: ./backend
-          push: true
-          tags: |
-            ${{ secrets.REGISTRY_URL }}/nexor-backend:${{ steps.version.outputs.VERSION }}
-            ${{ secrets.REGISTRY_URL }}/nexor-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'  # --prod flag = production deployment!
+          working-directory: ./frontend
 
-      - name: Build and Push Frontend
-        uses: docker/build-push-action@v5
+      - name: Trigger Railway Production Deploy
+        run: |
+          curl -X POST "${{ secrets.RAILWAY_PROD_WEBHOOK }}" \
+            -H "Content-Type: application/json"
+
+      - name: Create GitHub Release
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/github-script@v7
         with:
-          context: ./frontend
-          push: true
-          tags: |
-            ${{ secrets.REGISTRY_URL }}/nexor-frontend:${{ steps.version.outputs.VERSION }}
-            ${{ secrets.REGISTRY_URL }}/nexor-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          script: |
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${{ github.event.inputs.version }}`,
+              name: `Release v${{ github.event.inputs.version }}`,
+              body: `Production deployment v${{ github.event.inputs.version }}\n\nDeployed by @${{ github.actor }}`,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Notify success
+        run: |
+          echo "🎉 Production deployment complete!"
+          echo "Frontend: https://nexor-eta.vercel.app"
+          echo "Backend: https://nexor-production.up.railway.app"
