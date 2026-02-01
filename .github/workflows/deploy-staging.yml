@@ -71,7 +71,7 @@ jobs:
 
       - name: Trigger Railway Staging Deploy
         run: |
-          curl -X POST "${{ secrets.RAILWAY_STAGING_WEBHOOK }}" \
+          curl -X POST "${{ secrets.RAILWAY_WEBHOOK }}" \
             -H "Content-Type: application/json"
 
       - name: Comment on PR with staging URL
