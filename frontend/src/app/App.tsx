@@ -1,3 +1,4 @@
+// Feature: Improved app structure - v1.1.0
 import { useState } from 'react';
 import { LoginPage } from '@/app/components/LoginPage';
 import { HomePage } from '@/app/components/HomePage';
@@ -58,16 +59,16 @@ export default function App() {
       ) : (
         <HomePage onLogout={handleLogout} onNavigate={handleNavigate} />
       )}
-      
+
       {/* Floating widgets available on all pages */}
       {currentPage !== 'gpt' && (
         <>
-          <FloatingChat 
+          <FloatingChat
             isOpen={isChatOpen}
             setIsOpen={setIsChatOpen}
             hideButton={isJupiterOpen}
           />
-          <JupiterAI 
+          <JupiterAI
             isOpen={isJupiterOpen}
             setIsOpen={setIsJupiterOpen}
             hideButton={isChatOpen}
