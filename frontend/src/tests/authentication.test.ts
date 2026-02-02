@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * AUTHENTICATION TESTS - Nexor Platform
+ * =============================================================================
+ * These tests run on every deploy to ensure authentication is working correctly.
+ * 
+ * Test Categories:
+ * - Admin Login Flow
+ * - Token Management
+ * - Protected Routes
+ * - Email Validation
+ * - Company Management (Admin Only)
+ * =============================================================================
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock do fetch global
@@ -14,13 +29,13 @@ const localStorageMock = {
 };
 Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
-describe('Admin Login Tests', () => {
+describe('🔐 Authentication Tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorageMock.clear();
     });
 
-    describe('Authentication Flow', () => {
+    describe('Admin Login Flow', () => {
         it('should successfully login with admin credentials', async () => {
             const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test';
             const mockUser = {
@@ -114,7 +129,7 @@ describe('Admin Login Tests', () => {
     describe('Token Storage', () => {
         it('should store token in localStorage after successful login', async () => {
             const mockToken = 'test-token-123';
-            
+
             // Simulate storing token after login
             localStorageMock.setItem('nexor_token', mockToken);
 
@@ -124,7 +139,7 @@ describe('Admin Login Tests', () => {
 
         it('should clear token on logout', async () => {
             localStorageMock.store['nexor_token'] = 'some-token';
-            
+
             localStorageMock.removeItem('nexor_token');
 
             expect(localStorageMock.removeItem).toHaveBeenCalledWith('nexor_token');
@@ -179,7 +194,7 @@ describe('Admin Login Tests', () => {
     describe('Admin Email Validation', () => {
         it('should validate admin email format', () => {
             const ADMIN_EMAIL = 'admin@nexor.com';
-            
+
             const isAdmin = (email: string) => email === ADMIN_EMAIL;
 
             expect(isAdmin('admin@nexor.com')).toBe(true);
