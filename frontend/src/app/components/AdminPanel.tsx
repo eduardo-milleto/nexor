@@ -382,19 +382,19 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-gray-900 border border-white/10 text-white sm:max-w-md">
+        <DialogContent className="bg-black border border-white/10 text-white sm:max-w-md">
           <DialogHeader>
-            <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle size={24} className="text-red-400" />
+            <div className="mx-auto w-12 h-12 bg-[#1fff94]/10 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={24} className="text-[#1fff94]" />
             </div>
             <DialogTitle className="text-center text-xl font-semibold text-white">
               Excluir Empresa
             </DialogTitle>
             <DialogDescription className="text-center text-gray-400">
               Tem certeza que deseja excluir a empresa{' '}
-              <span className="text-white font-medium">{companyToDelete?.email}</span>?
+              <span className="text-[#1fff94] font-medium">{companyToDelete?.email}</span>?
               <br />
-              <span className="text-red-400 text-xs mt-2 block">
+              <span className="text-gray-500 text-xs mt-2 block">
                 Esta ação não pode ser desfeita. O usuário de autenticação também será removido.
               </span>
             </DialogDescription>
@@ -417,7 +417,7 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
               whileTap={{ scale: deleting ? 1 : 0.98 }}
               onClick={confirmDeleteCompany}
               disabled={deleting}
-              className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl text-white font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-[#1fff94] to-[#00d978] hover:from-[#00d978] hover:to-[#1fff94] rounded-xl text-black font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#1fff94]/20"
             >
               {deleting ? (
                 <>
@@ -427,7 +427,7 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
               ) : (
                 <>
                   <Trash2 size={18} />
-                  Excluir
+                  Confirmar
                 </>
               )}
             </motion.button>
