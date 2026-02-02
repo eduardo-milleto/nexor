@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Building2,
@@ -10,88 +10,84 @@ import {
   Mail,
   Lock,
   Check,
-  X
+  X,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+import { companyService, Company } from '@/services/company.service';
 
 interface AdminPanelProps {
   onLogout: () => void;
 }
 
-interface Company {
-  id: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-  users: number;
-  status: 'active' | 'inactive';
-}
-
 export function AdminPanel({ onLogout }: AdminPanelProps) {
-  const [companies, setCompanies] = useState<Company[]>([
-    {
-      id: '1',
-      email: 'empresa1@example.com',
-      password: '********',
-      createdAt: new Date('2024-01-15'),
-      users: 25,
-      status: 'active'
-    },
-    {
-      id: '2',
-      email: 'empresa2@example.com',
-      password: '********',
-      createdAt: new Date('2024-02-20'),
-      users: 18,
-      status: 'active'
-    },
-    {
-      id: '3',
-      email: 'empresa3@example.com',
-      password: '********',
-      createdAt: new Date('2024-03-10'),
-      users: 42,
-      status: 'inactive'
-    }
-  ]);
-
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const totalUsers = companies.reduce((sum, company) => sum + company.users, 0);
+  // Load companies on mount
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  const loadCompanies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await companyService.getAll();
+      setCompanies(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar empresas');
+      console.error('Error loading companies:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalUsers = companies.reduce((sum, company) => sum + (company.user_count || 0), 0);
   const activeCompanies = companies.filter(c => c.status === 'active').length;
 
-  const handleAddCompany = (e: React.FormEvent) => {
+  const handleAddCompany = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newCompany: Company = {
-      id: Date.now().toString(),
-      email: newEmail,
-      password: newPassword,
-      createdAt: new Date(),
-      users: 0,
-      status: 'active'
-    };
-    setCompanies([...companies, newCompany]);
-    setNewEmail('');
-    setNewPassword('');
-    setShowAddForm(false);
+    try {
+      setSubmitting(true);
+      setError(null);
+      await companyService.create({ email: newEmail, password: newPassword });
+      await loadCompanies();
+      setNewEmail('');
+      setNewPassword('');
+      setShowAddForm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar empresa');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteCompany = (id: string) => {
-    setCompanies(companies.filter(c => c.id !== id));
+  const handleDeleteCompany = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
+    try {
+      setError(null);
+      await companyService.delete(id);
+      setCompanies(companies.filter(c => c.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir empresa');
+    }
   };
 
-  const toggleCompanyStatus = (id: string) => {
-    setCompanies(companies.map(c => 
-      c.id === id 
-        ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' as 'active' | 'inactive' }
-        : c
-    ));
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
+  const toggleCompanyStatus = async (id: string) => {
+    try {
+      setError(null);
+      const updated = await companyService.toggleStatus(id);
+      setCompanies(companies.map(c => c.id === id ? updated : c));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao alterar status');
+    }
+    {/* Header */ }
       <div className="bg-gradient-to-r from-black via-gray-900 to-black border-b border-white/10 sticky top-0 z-50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -116,6 +112,28 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Error Alert */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400"
+          >
+            <AlertCircle size={20} />
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto">
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 size={40} className="text-[#1fff94] animate-spin" />
+          </div>
+        ) : (
+          <>
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div
@@ -226,11 +244,19 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
                   <div className="flex gap-3">
                     <motion.button
                       type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 py-3 bg-gradient-to-r from-[#1fff94] to-[#00d978] text-black font-semibold rounded-xl"
+                      disabled={submitting}
+                      whileHover={{ scale: submitting ? 1 : 1.02 }}
+                      whileTap={{ scale: submitting ? 1 : 0.98 }}
+                      className="flex-1 py-3 bg-gradient-to-r from-[#1fff94] to-[#00d978] text-black font-semibold rounded-xl disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      Criar Empresa
+                      {submitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Criando...
+                        </>
+                      ) : (
+                        'Criar Empresa'
+                      )}
                     </motion.button>
                     <motion.button
                       type="button"
@@ -281,19 +307,18 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-400">
-                        {company.createdAt.toLocaleDateString('pt-BR')}
+                        {new Date(company.created_at).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-white font-semibold">{company.users}</span>
+                        <span className="text-white font-semibold">{company.user_count || 0}</span>
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() => toggleCompanyStatus(company.id)}
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                            company.status === 'active'
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all ${company.status === 'active'
                               ? 'bg-[#1fff94]/10 text-[#1fff94] hover:bg-[#1fff94]/20'
                               : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                          }`}
+                            }`}
                         >
                           {company.status === 'active' ? (
                             <>
@@ -325,7 +350,9 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
             </table>
           </div>
         </div>
+          </>
+        )}
       </div>
-    </div>
+    </div >
   );
 }
