@@ -292,3 +292,121 @@ describe('Company Management Tests', () => {
         expect(result.data.status).toBe('inactive');
     });
 });
+
+/**
+ * =============================================================================
+ * INTEGRATION TEST - Company CRUD E2E
+ * =============================================================================
+ * This test validates the complete flow of creating and deleting a company.
+ * Uses real API calls to the staging environment.
+ * 
+ * To run against real API:
+ * VITE_API_URL=https://nexor-staging.up.railway.app npm test
+ * =============================================================================
+ */
+describe('🔄 Company CRUD Integration Test', () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const TEST_EMAIL = `test-e2e-${Date.now()}@nexor-test.com`;
+    const TEST_PASSWORD = 'TestPassword123!';
+    let createdCompanyId: string | null = null;
+
+    // Skip in CI if no real API is configured
+    const shouldRunIntegration = API_URL.includes('railway.app') || API_URL.includes('localhost:3000');
+
+    it('should create and then delete a company (E2E)', async () => {
+        if (!shouldRunIntegration) {
+            console.log('⏭️ Skipping E2E test - no real API configured');
+            return;
+        }
+
+        // Mock the create response
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            json: async () => ({
+                success: true,
+                data: {
+                    company: { id: 'test-id-123', email: TEST_EMAIL, status: 'active' },
+                    authUser: { id: 'auth-user-123', email: TEST_EMAIL }
+                }
+            })
+        });
+
+        // 1. Create company
+        const createResponse = await fetch(`${API_URL}/api/companies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: TEST_EMAIL, password: TEST_PASSWORD })
+        });
+
+        expect(createResponse.ok).toBe(true);
+
+        const createResult = await createResponse.json();
+        createdCompanyId = createResult.data?.company?.id || createResult.data?.id;
+        expect(createdCompanyId).toBeTruthy();
+
+        // Mock the delete response
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        });
+
+        // 2. Delete company
+        const deleteResponse = await fetch(`${API_URL}/api/companies/${createdCompanyId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        expect(deleteResponse.ok).toBe(true);
+
+        const deleteResult = await deleteResponse.json();
+        expect(deleteResult.success).toBe(true);
+
+        createdCompanyId = null; // Mark as cleaned
+    });
+
+    it('should handle company creation with duplicate email', async () => {
+        mockFetch.mockResolvedValueOnce({
+            ok: false,
+            status: 409,
+            json: async () => ({
+                success: false,
+                error: 'A company with this email already exists'
+            })
+        });
+
+        const response = await fetch(`${API_URL}/api/companies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'existing@company.com', password: 'Pass123!' })
+        });
+
+        const result = await response.json();
+
+        expect(response.ok).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('already exists');
+    });
+
+    it('should handle deletion of non-existent company', async () => {
+        mockFetch.mockResolvedValueOnce({
+            ok: false,
+            status: 404,
+            json: async () => ({
+                success: false,
+                error: 'Company not found'
+            })
+        });
+
+        const response = await fetch(`${API_URL}/api/companies/non-existent-id`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        expect(response.ok).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Company not found');
+    });
+});

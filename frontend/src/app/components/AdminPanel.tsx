@@ -12,9 +12,18 @@ import {
   Check,
   X,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { companyService, Company } from '@/services/company.service';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 interface AdminPanelProps {
   onLogout: () => void;
@@ -28,6 +37,9 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Load companies on mount
   useEffect(() => {
@@ -68,14 +80,24 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
     }
   };
 
-  const handleDeleteCompany = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
+  const handleDeleteCompany = async (company: Company) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteCompany = async () => {
+    if (!companyToDelete) return;
     try {
+      setDeleting(true);
       setError(null);
-      await companyService.delete(id);
-      setCompanies(companies.filter(c => c.id !== id));
+      await companyService.delete(companyToDelete.id);
+      setCompanies(companies.filter(c => c.id !== companyToDelete.id));
+      setDeleteDialogOpen(false);
+      setCompanyToDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir empresa');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -341,7 +363,7 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              onClick={() => handleDeleteCompany(company.id)}
+                              onClick={() => handleDeleteCompany(company)}
                               className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all"
                             >
                               <Trash2 size={18} />
@@ -357,6 +379,61 @@ export function AdminPanel({ onLogout }: AdminPanelProps) {
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-gray-900 border border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={24} className="text-red-400" />
+            </div>
+            <DialogTitle className="text-center text-xl font-semibold text-white">
+              Excluir Empresa
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-400">
+              Tem certeza que deseja excluir a empresa{' '}
+              <span className="text-white font-medium">{companyToDelete?.email}</span>?
+              <br />
+              <span className="text-red-400 text-xs mt-2 block">
+                Esta ação não pode ser desfeita. O usuário de autenticação também será removido.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3 sm:gap-3 mt-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setCompanyToDelete(null);
+              }}
+              disabled={deleting}
+              className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all disabled:opacity-50"
+            >
+              Cancelar
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: deleting ? 1 : 1.02 }}
+              whileTap={{ scale: deleting ? 1 : 0.98 }}
+              onClick={confirmDeleteCompany}
+              disabled={deleting}
+              className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl text-white font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 size={18} />
+                  Excluir
+                </>
+              )}
+            </motion.button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   );
 }
