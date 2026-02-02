@@ -1,5 +1,5 @@
 import { pool } from '../config/database.js';
-import { supabase } from '../config/supabase.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
 export const companyService = {
     // Get all companies with user count
@@ -36,8 +36,12 @@ export const companyService = {
 
     // Create new company with Supabase auth user
     async create(email, password, name = null) {
+        if (!supabaseAdmin) {
+            throw new Error('Supabase admin client not configured. Set SUPABASE_SERVICE_ROLE_KEY.');
+        }
+
         // Create user in Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true
@@ -84,13 +88,15 @@ export const companyService = {
             throw new Error('Company not found');
         }
 
-        // Get Supabase user by email
-        const { data: users } = await supabase.auth.admin.listUsers();
-        const authUser = users.users.find(u => u.email === company.email);
+        if (supabaseAdmin) {
+            // Get Supabase user by email
+            const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+            const authUser = users.users.find(u => u.email === company.email);
 
-        if (authUser) {
-            // Delete from Supabase Auth
-            await supabase.auth.admin.deleteUser(authUser.id);
+            if (authUser) {
+                // Delete from Supabase Auth
+                await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+            }
         }
 
         // Delete from database (cascade deletes company_users)
