@@ -60,4 +60,7 @@ export async function adminMiddleware(req, res, next) {
     }
 }
 
-export default { authMiddleware, adminMiddleware };
+// Alias for adminMiddleware
+export const requireAdmin = adminMiddleware;
+
+export default { authMiddleware, adminMiddleware, requireAdmin };

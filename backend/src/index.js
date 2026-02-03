@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool, testConnection } from './config/database.js';
 import authRoutes from './routes/auth.routes.js';
+import companyRoutes from './routes/company.routes.js';
 
 // Load environment variables
 dotenv.config({ path: '../.env.local' });
@@ -50,13 +51,15 @@ app.get('/api', (req, res) => {
         version: '1.0.0',
         endpoints: {
             health: '/health',
-            auth: '/api/auth/*'
+            auth: '/api/auth/*',
+            companies: '/api/companies/*'
         }
     });
 });
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/companies', companyRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, 
+  ArrowLeft,
   X, 
   GripVertical,
   Trash2,
