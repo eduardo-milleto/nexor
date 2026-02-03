@@ -84,7 +84,6 @@ jobs:
         run: npm i -g vercel@latest
 
       - name: Deploy Frontend to Vercel (Production)
-        working-directory: ./frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -92,7 +91,7 @@ jobs:
         run: |
           for attempt in 1 2 3; do
             echo "🚀 Vercel deploy attempt $attempt/3"
-            if vercel deploy --prod --token "$VERCEL_TOKEN" --confirm; then
+            if vercel deploy --prod --token "$VERCEL_TOKEN" --yes; then
               exit 0
             fi
             echo "⚠️ Vercel deploy failed. Retrying in 15s..."
