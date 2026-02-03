@@ -41,7 +41,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [backend-test]
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    if: (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && secrets.STAGING_API_URL != '' && secrets.ADMIN_EMAIL != '' && secrets.ADMIN_PASSWORD != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != ''
     
     steps:
       - name: Checkout code

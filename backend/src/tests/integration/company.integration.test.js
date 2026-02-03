@@ -13,16 +13,23 @@ import assert from 'node:assert';
  * Requires: SUPABASE_SERVICE_ROLE_KEY to be set
  */
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nexor.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const API_URL = process.env.API_URL?.trim();
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim();
 const TEST_EMAIL = `test-pipeline-${Date.now()}@nexor-test.com`;
 const TEST_PASSWORD = 'TestPassword123!';
 
 let createdCompanyId = null;
 let adminToken = null;
 
-describe('Company Integration Tests', () => {
+const shouldRun = Boolean(API_URL && ADMIN_EMAIL && ADMIN_PASSWORD);
+const describeIntegration = shouldRun ? describe : describe.skip;
+
+if (!shouldRun) {
+    console.log('⚠️ Skipping integration tests: missing API_URL/ADMIN_EMAIL/ADMIN_PASSWORD');
+}
+
+describeIntegration('Company Integration Tests', () => {
     before(async () => {
         // Login as admin to get auth token
         console.log(`🔐 Logging in as admin: ${ADMIN_EMAIL}`);
