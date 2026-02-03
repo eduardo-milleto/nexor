@@ -60,7 +60,7 @@ jobs:
 
       - name: Run integration tests
         working-directory: ./backend
-        run: node --test src/tests/company.integration.test.js
+        run: node --test src/tests/integration/company.integration.test.js
         env:
           API_URL: ${{ secrets.STAGING_API_URL }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
